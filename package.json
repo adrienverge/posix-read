@@ -1,0 +1,27 @@
+{
+    "name": "posixread",
+    "version": "1.0.0",
+    "description": "Make POSIX read on files with Node.js",
+    "main": "index.js",
+    "repository": "scality/posixread",
+    "author": "Adrien Vergé",
+    "license": "MIT",
+    "homepage": "https://github.com/scality/posixread",
+    "scripts": {
+        "install": "node-gyp configure && node-gyp build",
+        "lint": "eslint $(git ls-files '*.js')",
+        "lint_cpp": "node-cpplint $(git ls-files '*.cpp' '*.h')",
+        "test": "mocha"
+    },
+    "dependencies": {
+        "bindings": "^1.2.1",
+        "nan": "^2.0.9"
+    },
+    "devDependencies": {
+        "eslint": "^1.5.1",
+        "eslint-config-airbnb": "^0.0.9",
+        "mocha": "^2.3.3",
+        "node-cpplint": "^0.4.0"
+    },
+    "gypfile": true
+}
