@@ -1,0 +1,22 @@
+{
+    "name": "posixread",
+    "version": "0.1.0",
+    "description": "Do POSIX read on files and sockets with Node.js",
+    "main": "index.js",
+    "repository": "adrienverge/posixread",
+    "author": "Adrien Vergé",
+    "license": "MIT",
+    "homepage": "https://github.com/adrienverge/posixread",
+    "scripts": {
+        "install": "node-gyp configure && node-gyp build",
+        "test": "mocha"
+    },
+    "dependencies": {
+        "bindings": "^1.2.1",
+        "nan": "^2.0.9"
+    },
+    "devDependencies": {
+        "mocha": "^2.3.3"
+    },
+    "gypfile": true
+}
