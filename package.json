@@ -9,6 +9,7 @@
     "homepage": "https://github.com/adrienverge/posixread",
     "scripts": {
         "install": "node-gyp configure && node-gyp build",
+        "lint_js": "eslint $(git ls-files '*.js')",
         "test": "mocha"
     },
     "dependencies": {
@@ -16,6 +17,9 @@
         "nan": "^2.0.9"
     },
     "devDependencies": {
+        "babel-eslint": "^4.1.6",
+        "eslint": "^1.10.3",
+        "eslint-config-airbnb": "^1.0.0",
         "mocha": "^2.3.3"
     },
     "gypfile": true
