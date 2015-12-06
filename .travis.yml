@@ -12,4 +12,5 @@ addons:
       - g++-4.8
 script:
   - npm run lint_js
+  - npm run lint_cpp
   - npm test
