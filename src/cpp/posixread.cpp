@@ -102,7 +102,6 @@ class PosixReadWorker : public Nan::AsyncWorker {
     bool fd_was_non_blocking;
 
     size_t size;
-    v8::Local<v8::Object> buffer;
     char *data;
 
     /*
@@ -143,10 +142,7 @@ class PosixReadWorker : public Nan::AsyncWorker {
 
  public:
     PosixReadWorker(Nan::Callback *callback, int fd, size_t size)
-            : Nan::AsyncWorker(callback), fd(fd), size(size) {
-        buffer = Nan::NewBuffer((uint32_t) size).ToLocalChecked();
-        data = node::Buffer::Data(buffer);
-    }
+            : Nan::AsyncWorker(callback), fd(fd), size(size) { }
 
     ~PosixReadWorker() {}
 
@@ -159,11 +155,17 @@ class PosixReadWorker : public Nan::AsyncWorker {
         static char msg[256];
         size_t count = 0;
 
-        // TODO(adrienverge): Double check that it's really not needed to free
-        // buffer when returning in case of error
+        data = (char *) malloc(size);
+        if (data == NULL) {
+            snprintf(msg, sizeof(msg), "malloc failed: %s", strerror(errno));
+            SetErrorMessage(msg);
+            return;
+        }
+
         if (set_blocking()) {
             snprintf(msg, sizeof(msg), "fnctl failed: %s", strerror(errno));
             SetErrorMessage(msg);
+            free(data);
             return;
         }
 
@@ -175,11 +177,13 @@ class PosixReadWorker : public Nan::AsyncWorker {
 
                 snprintf(msg, sizeof(msg), "read failed: %s", strerror(errno));
                 SetErrorMessage(msg);
+                free(data);
                 break;
             } else if (n == 0) {  // end of stream
                 snprintf(msg, sizeof(msg),
                         "reached end of stream (read %lu bytes)", count);
                 SetErrorMessage(msg);
+                free(data);
                 break;
             } else {
                 count += n;
@@ -190,6 +194,7 @@ class PosixReadWorker : public Nan::AsyncWorker {
             if (ErrorMessage() == NULL) {
                 snprintf(msg, sizeof(msg), "fnctl failed: %s", strerror(errno));
                 SetErrorMessage(msg);
+                free(data);
             }
         }
     }
@@ -201,8 +206,10 @@ class PosixReadWorker : public Nan::AsyncWorker {
     void HandleOKCallback() {
         Nan::HandleScope scope;
 
-        v8::Local<v8::Value> argv[] = { Nan::Null(), buffer };
+        v8::Local<v8::Object> buffer =
+                Nan::NewBuffer(data, (uint32_t) size).ToLocalChecked();
 
+        v8::Local<v8::Value> argv[] = { Nan::Null(), buffer };
         callback->Call(2, argv);
     }
 };
