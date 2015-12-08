@@ -96,6 +96,23 @@ static int get_fd_from_socket(v8::Local<v8::Object> socket) {
     return fd;
 }
 
+/*
+ * Equivalent of:
+ *
+ * const err = new Error(message);
+ * err[property] = true;
+ */
+static v8::Local<v8::Value> error_with_property(const char *property,
+                                                const char *message) {
+    v8::Local<v8::Value> error = Nan::Error(message);
+
+    v8::Local<v8::String> key = Nan::New<v8::String>(property)
+            .ToLocalChecked();
+    error.As<v8::Object>()->Set(key, Nan::True());
+
+    return error;
+}
+
 class PosixReadWorker : public Nan::AsyncWorker {
  private:
     int fd;
@@ -103,6 +120,8 @@ class PosixReadWorker : public Nan::AsyncWorker {
 
     size_t size;
     char *data;
+
+    const char *error_prop = NULL;
 
     /*
      * Set the socket blocking, if it was not.
@@ -157,12 +176,14 @@ class PosixReadWorker : public Nan::AsyncWorker {
 
         data = (char *) malloc(size);
         if (data == NULL) {
+            error_prop = "systemError";
             snprintf(msg, sizeof(msg), "malloc failed: %s", strerror(errno));
             SetErrorMessage(msg);
             return;
         }
 
         if (set_blocking()) {
+            error_prop = "systemError";
             snprintf(msg, sizeof(msg), "fnctl failed: %s", strerror(errno));
             SetErrorMessage(msg);
             free(data);
@@ -175,13 +196,15 @@ class PosixReadWorker : public Nan::AsyncWorker {
                 if (errno == EINTR)
                     continue;
 
+                error_prop = "systemError";
                 snprintf(msg, sizeof(msg), "read failed: %s", strerror(errno));
                 SetErrorMessage(msg);
                 free(data);
                 break;
             } else if (n == 0) {  // end of stream
+                error_prop = "endOfFile";
                 snprintf(msg, sizeof(msg),
-                        "reached end of stream (read %lu bytes)", count);
+                         "reached end of stream (read %lu bytes)", count);
                 SetErrorMessage(msg);
                 free(data);
                 break;
@@ -192,6 +215,7 @@ class PosixReadWorker : public Nan::AsyncWorker {
 
         if (unset_blocking()) {
             if (ErrorMessage() == NULL) {
+                error_prop = "systemError";
                 snprintf(msg, sizeof(msg), "fnctl failed: %s", strerror(errno));
                 SetErrorMessage(msg);
                 free(data);
@@ -211,6 +235,14 @@ class PosixReadWorker : public Nan::AsyncWorker {
 
         v8::Local<v8::Value> argv[] = { Nan::Null(), buffer };
         callback->Call(2, argv);
+    }
+
+    void HandleErrorCallback() {
+        Nan::HandleScope scope;
+
+        v8::Local<v8::Value> argv[] = {
+                error_with_property(error_prop, ErrorMessage()) };
+        callback->Call(1, argv);
     }
 };
 
@@ -252,7 +284,8 @@ void Read(const Nan::FunctionCallbackInfo<v8::Value>& info) {
      * but callback(error).
      */
     if (!socket_is_readable(socket)) {
-        v8::Local<v8::Value> argv[] = { Nan::Error("socket is not readable") };
+        v8::Local<v8::Value> argv[] = {
+                error_with_property("badStream", "socket is not readable") };
         callback->Call(1, argv);
         return;
     }
@@ -260,8 +293,9 @@ void Read(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     // descriptor.
     int fd = get_fd_from_socket(socket);
     if (fd == -1) {
-        v8::Local<v8::Value> argv[] = {
-            Nan::Error("malformed socket object, cannot get file descriptor") };
+        v8::Local<v8::Value> argv[] = { error_with_property(
+                "badStream",
+                "malformed socket object, cannot get file descriptor") };
         callback->Call(1, argv);
         return;
     }
