@@ -45,7 +45,7 @@ describe('posixread.read()', () => {
     it('should detect bad socket (not readable)', (done) => {
         const socket = new net.Socket();
         posixread.read(socket, 10, (err) => {
-            if (err === undefined)
+            if (!err)
                 return done(new Error('error not thrown'));
             if (err.message !== 'socket is not readable')
                 return done(err);
@@ -74,7 +74,7 @@ describe('posixread.read()', () => {
         getNewSocket(function onSocket(socket) {
             socket._handle = {};
             posixread.read(socket, 10, (err) => {
-                if (err === undefined)
+                if (!err)
                     return done(new Error('error not thrown'));
                 if (err.message !== 'malformed socket object, cannot get ' +
                                     'file descriptor')
@@ -162,7 +162,7 @@ describe('posixread.read()', () => {
         getNewSocket(function onSocket(socket, otherEnd) {
             otherEnd.end('123456789', () => {
                 posixread.read(socket, 10, (err) => {
-                    if (err === undefined)
+                    if (!err)
                         return done(new Error('error not thrown'));
                     if (err.message !== 'reached end of stream (read 9 bytes)')
                         return done(err);
