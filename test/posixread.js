@@ -61,7 +61,7 @@ describe('posixread.read()', () => {
             function onConnection(socket) {
                 server.close();
                 callback(socket, otherEnd);
-                otherEnd.end();
+                // otherEnd.end();
                 // otherEnd.destroy();
             });
 
@@ -170,6 +170,41 @@ describe('posixread.read()', () => {
                     done();
                 });
             });
+        });
+    });
+
+    it('should wait for data to be available', (done) => {
+        getNewSocket(function onSocket(socket, otherEnd) {
+            posixread.read(socket, 10, (err, buffer) => {
+                if (err)
+                    return done(err);
+
+                assert.deepStrictEqual(buffer, new Buffer('ABCDEFGHIJ'));
+                done();
+            });
+            setTimeout(() => {
+                otherEnd.write('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+            }, 10);
+        });
+    });
+
+    it('should accept data sent by chunks', (done) => {
+        getNewSocket(function onSocket(socket, otherEnd) {
+            posixread.read(socket, 25, (err, buffer) => {
+                if (err)
+                    return done(err);
+
+                assert.deepStrictEqual(
+                    buffer, new Buffer('----------0123456789ABCDE'));
+                done();
+            });
+            otherEnd.write('----------');
+            setTimeout(() => {
+                otherEnd.write('0123456789');
+            }, 10);
+            setTimeout(() => {
+                otherEnd.write('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+            }, 20);
         });
     });
 });
