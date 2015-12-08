@@ -31,7 +31,7 @@
  * not a strict check and can be easily be fooled. But at least, it should
  * prevent some trivial programming errors.
  */
-static bool looks_like_a_socket(v8::Local<v8::Value> object) {
+static bool LooksLikeASocket(v8::Local<v8::Value> object) {
     if (!object->IsObject())
         return false;
     v8::Local<v8::Object> socket = object.As<v8::Object>();
@@ -46,7 +46,7 @@ static bool looks_like_a_socket(v8::Local<v8::Value> object) {
 /*
  * Checks if the socket has the 'readable' property set to true.
  */
-static bool socket_is_readable(v8::Local<v8::Object> socket) {
+static bool SocketIsReadable(v8::Local<v8::Object> socket) {
     v8::Local<v8::String> key =
             Nan::New<v8::String>("readable").ToLocalChecked();
 
@@ -61,7 +61,7 @@ static bool socket_is_readable(v8::Local<v8::Object> socket) {
  * Make sure the passed socket has a TCP handle with an associated fd. Returns
  * the fd on success, or -1 in case of error.
  */
-static int get_fd_from_socket(v8::Local<v8::Object> socket) {
+static int GetFdFromSocket(v8::Local<v8::Object> socket) {
     v8::Local<v8::String> key;
     v8::Local<v8::Object> handle;
     v8::Local<v8::Value> value;
@@ -102,8 +102,8 @@ static int get_fd_from_socket(v8::Local<v8::Object> socket) {
  * const err = new Error(message);
  * err[property] = true;
  */
-static v8::Local<v8::Value> error_with_property(const char *property,
-                                                const char *message) {
+static v8::Local<v8::Value> ErrorWithProperty(const char *property,
+                                              const char *message) {
     v8::Local<v8::Value> error = Nan::Error(message);
 
     v8::Local<v8::String> key = Nan::New<v8::String>(property)
@@ -126,7 +126,7 @@ class PosixReadWorker : public Nan::AsyncWorker {
     /*
      * Set the socket blocking, if it was not.
      */
-    int set_blocking() {
+    int SetBlocking() {
         int opts = fcntl(fd, F_GETFL);
         if (opts == -1)
             return -1;
@@ -145,7 +145,7 @@ class PosixReadWorker : public Nan::AsyncWorker {
     /*
      * Reset the socket like in the mode (blocking vs. non-blocking) it was.
      */
-    int unset_blocking() {
+    int UnsetBlocking() {
         if (fd_was_non_blocking) {
             int opts = fcntl(fd, F_GETFL);
             if (opts == -1)
@@ -182,7 +182,7 @@ class PosixReadWorker : public Nan::AsyncWorker {
             return;
         }
 
-        if (set_blocking()) {
+        if (SetBlocking()) {
             error_prop = "systemError";
             snprintf(msg, sizeof(msg), "fnctl failed: %s", strerror(errno));
             SetErrorMessage(msg);
@@ -213,7 +213,7 @@ class PosixReadWorker : public Nan::AsyncWorker {
             }
         } while (count < size);
 
-        if (unset_blocking()) {
+        if (UnsetBlocking()) {
             if (ErrorMessage() == NULL) {
                 error_prop = "systemError";
                 snprintf(msg, sizeof(msg), "fnctl failed: %s", strerror(errno));
@@ -241,7 +241,7 @@ class PosixReadWorker : public Nan::AsyncWorker {
         Nan::HandleScope scope;
 
         v8::Local<v8::Value> argv[] = {
-                error_with_property(error_prop, ErrorMessage()) };
+                ErrorWithProperty(error_prop, ErrorMessage()) };
         callback->Call(1, argv);
     }
 };
@@ -255,7 +255,7 @@ void Read(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     /*
      * Get 'socket' argument.
      */
-    if (!looks_like_a_socket(info[0])) {
+    if (!LooksLikeASocket(info[0])) {
         Nan::ThrowTypeError("first argument should be a socket");
         return;
     }
@@ -283,17 +283,17 @@ void Read(const Nan::FunctionCallbackInfo<v8::Value>& info) {
      * Run-time checks. They don't throw (since these are not programmer errors)
      * but callback(error).
      */
-    if (!socket_is_readable(socket)) {
+    if (!SocketIsReadable(socket)) {
         v8::Local<v8::Value> argv[] = {
-                error_with_property("badStream", "socket is not readable") };
+                ErrorWithProperty("badStream", "socket is not readable") };
         callback->Call(1, argv);
         return;
     }
     // Check if the 'socket' argument is well-formed and extract its file
     // descriptor.
-    int fd = get_fd_from_socket(socket);
+    int fd = GetFdFromSocket(socket);
     if (fd == -1) {
-        v8::Local<v8::Value> argv[] = { error_with_property(
+        v8::Local<v8::Value> argv[] = { ErrorWithProperty(
                 "badStream",
                 "malformed socket object, cannot get file descriptor") };
         callback->Call(1, argv);
