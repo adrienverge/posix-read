@@ -187,8 +187,10 @@ class PosixReadWorker : public Nan::AsyncWorker {
         } while (count < size);
 
         if (unset_blocking()) {
-            snprintf(msg, sizeof(msg), "fnctl failed: %s", strerror(errno));
-            SetErrorMessage(msg);
+            if (ErrorMessage() == NULL) {
+                snprintf(msg, sizeof(msg), "fnctl failed: %s", strerror(errno));
+                SetErrorMessage(msg);
+            }
         }
     }
 
