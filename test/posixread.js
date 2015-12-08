@@ -47,7 +47,8 @@ describe('posixread.read()', () => {
         posixread.read(socket, 10, (err) => {
             if (!err)
                 return done(new Error('error not thrown'));
-            if (err.message !== 'socket is not readable')
+            if (err.badStream !== true
+                    || err.message !== 'socket is not readable')
                 return done(err);
             return done();
         });
@@ -76,8 +77,9 @@ describe('posixread.read()', () => {
             posixread.read(socket, 10, (err) => {
                 if (!err)
                     return done(new Error('error not thrown'));
-                if (err.message !== 'malformed socket object, cannot get ' +
-                                    'file descriptor')
+                if (err.badStream !== true
+                        || err.message !== 'malformed socket object, cannot ' +
+                                           'get file descriptor')
                     return done(err);
                 return done();
             });
@@ -164,7 +166,9 @@ describe('posixread.read()', () => {
                 posixread.read(socket, 10, (err) => {
                     if (!err)
                         return done(new Error('error not thrown'));
-                    if (err.message !== 'reached end of stream (read 9 bytes)')
+                    if (err.endOfFile !== true
+                            || err.message !== 'reached end of stream (read ' +
+                                               '9 bytes)')
                         return done(err);
 
                     done();

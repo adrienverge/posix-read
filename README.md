@@ -38,13 +38,27 @@ const server = net.createServer({ pauseOnConnect: true }, function (socket) {
     // Just got an incoming connection. Let's read 10 bytes from it (but DO NOT
     // consume more than 10 bytes from the socket).
     posixread.read(socket, 10, function (err, buffer) {
+        if (err && err.endOfFile)
+            return process.stderr.write('peer sent less than 10 bytes\n');
         if (err)
-            return process.stderr.write('error: ' + err);
+            return process.stderr.write(`error: ${err}\n`);
 
-        return process.stdout.write('10 first bytes: ' + buffer);
+        return process.stdout.write(`10 first bytes: ${buffer}\n`);
     });
 }).listen(1234);
 ```
+
+### Error types
+
+If a problem happens, the `Error` object passed to the callback has helpful
+properties:
+
+* `error.badStream === true` if the socket is malformed or its file descriptor
+  is not available
+* `error.endOfFile === true` if the end-of-file was reached before having read
+  all the bytes requested
+* `error.systemError === true` in case of a system call error (in such a case,
+  `error.message` should contain more useful information.
 
 ## License
 
