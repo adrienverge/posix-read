@@ -28,7 +28,13 @@ socket. That means the socket must have the `pauseOnCreate` property.
 In practice: if you get the socket from a `net.Server`, this server has to be
 created with the `pauseOnConnect` set to `true`.
 
-### Example
+### Install
+
+```sh
+npm install posix-read
+```
+
+### Usage example
 
 ```js
 const net = require('net');
