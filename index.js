@@ -1,1 +1,1 @@
-module.exports = require('bindings')('posixread');
+module.exports = require('bindings')('posix-read');

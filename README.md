@@ -1,8 +1,8 @@
-# posixread
+# posix-read
 
 Do POSIX read on files and sockets with Node.js.
 
-[![Build Status](https://travis-ci.org/adrienverge/posixread.svg?branch=master)](https://travis-ci.org/adrienverge/posixread)
+[![Build Status](https://travis-ci.org/adrienverge/posix-read.svg?branch=master)](https://travis-ci.org/adrienverge/posix-read)
 
 ## Motivation
 
@@ -14,7 +14,7 @@ but consumes it all. There is not built-in way to read a fixed amount, let's say
 This is a problem when you want to read *only* `n` bytes and leave the rest in
 the socket (so that, for instance, another process reads remaining data).
 
-posixread is a module to perform a POSIX read on a socket. That way, only `n`
+posix-read is a module to perform a POSIX read on a socket. That way, only `n`
 bytes are brought up to user-space and the rest remains in kernel-space, ready
 to be `read(2)` by any other process.
 
@@ -22,7 +22,7 @@ to be `read(2)` by any other process.
 
 ### Warning
 
-For posixread to work, your code must prevent `libuv` to start reading from the
+For posix-read to work, your code must prevent `libuv` to start reading from the
 socket. That means the socket must have the `pauseOnCreate` property.
 
 In practice: if you get the socket from a `net.Server`, this server has to be
@@ -32,12 +32,12 @@ created with the `pauseOnConnect` set to `true`.
 
 ```js
 const net = require('net');
-const posixread = require('posixread');
+const posixRead = require('posix-read');
 
 const server = net.createServer({ pauseOnConnect: true }, function (socket) {
     // Just got an incoming connection. Let's read 10 bytes from it (but DO NOT
     // consume more than 10 bytes from the socket).
-    posixread.read(socket, 10, function (err, buffer) {
+    posixRead.read(socket, 10, function (err, buffer) {
         if (err && err.endOfFile)
             return process.stderr.write('peer sent less than 10 bytes\n');
         if (err)

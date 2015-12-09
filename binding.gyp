@@ -1,8 +1,8 @@
 {
     "targets": [
         {
-            "target_name": "posixread",
-            "sources": [ "src/cpp/posixread.cpp" ],
+            "target_name": "posix-read",
+            "sources": [ "src/cpp/posix-read.cpp" ],
             "include_dirs" : [
                 "<!(node -e \"require('nan')\")"
             ],

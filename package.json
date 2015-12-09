@@ -1,12 +1,12 @@
 {
-    "name": "posixread",
+    "name": "posix-read",
     "version": "0.1.1",
     "description": "Do POSIX read on files and sockets with Node.js",
     "main": "index.js",
-    "repository": "adrienverge/posixread",
+    "repository": "adrienverge/posix-read",
     "author": "Adrien Vergé",
     "license": "MIT",
-    "homepage": "https://github.com/adrienverge/posixread",
+    "homepage": "https://github.com/adrienverge/posix-read",
     "scripts": {
         "install": "node-gyp configure && node-gyp build",
         "lint_js": "eslint $(git ls-files '*.js')",

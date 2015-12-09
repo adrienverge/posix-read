@@ -174,7 +174,7 @@ class PosixReadWorker : public Nan::AsyncWorker {
         static char msg[256];
         size_t count = 0;
 
-        data = (char *) malloc(size);
+        data = reinterpret_cast<char *>(malloc(size));
         if (data == NULL) {
             error_prop = "systemError";
             snprintf(msg, sizeof(msg), "malloc failed: %s", strerror(errno));

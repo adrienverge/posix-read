@@ -2,12 +2,12 @@ const assert = require('assert');
 const crypto = require('crypto');
 const net = require('net');
 
-const posixread = require('../index');
+const posixRead = require('../index');
 
-describe('posixread.read()', () => {
+describe('read()', () => {
     it('should detect non-socket objects (undefined)', (done) => {
         try {
-            posixread.read(undefined, 10, () => {});
+            posixRead.read(undefined, 10, () => {});
             done(new Error('error not thrown'));
         } catch (err) {
             if (err instanceof TypeError
@@ -19,7 +19,7 @@ describe('posixread.read()', () => {
 
     it('should detect non-socket objects (number)', (done) => {
         try {
-            posixread.read(42, 10, () => {});
+            posixRead.read(42, 10, () => {});
             done(new Error('error not thrown'));
         } catch (err) {
             if (err instanceof TypeError
@@ -32,7 +32,7 @@ describe('posixread.read()', () => {
     it('should detect non-socket objects (fake socket)', (done) => {
         try {
             const socket = { _handle: { fd: 2 }, readable: true };
-            posixread.read(socket, 10, () => {});
+            posixRead.read(socket, 10, () => {});
             done(new Error('error not thrown'));
         } catch (err) {
             if (err instanceof TypeError
@@ -44,7 +44,7 @@ describe('posixread.read()', () => {
 
     it('should detect bad socket (not readable)', (done) => {
         const socket = new net.Socket();
-        posixread.read(socket, 10, (err) => {
+        posixRead.read(socket, 10, (err) => {
             if (!err)
                 return done(new Error('error not thrown'));
             if (err.badStream !== true
@@ -74,7 +74,7 @@ describe('posixread.read()', () => {
     it('should detect bad socket (invalid handle)', (done) => {
         getNewSocket(function onSocket(socket) {
             socket._handle = {};
-            posixread.read(socket, 10, (err) => {
+            posixRead.read(socket, 10, (err) => {
                 if (!err)
                     return done(new Error('error not thrown'));
                 if (err.badStream !== true
@@ -89,7 +89,7 @@ describe('posixread.read()', () => {
     it('should detect bad requested size (wrong type)', (done) => {
         getNewSocket(function onSocket(socket) {
             try {
-                posixread.read(socket, 'test', () => {});
+                posixRead.read(socket, 'test', () => {});
                 done(new Error('error not thrown'));
             } catch (err) {
                 if (err instanceof TypeError
@@ -104,7 +104,7 @@ describe('posixread.read()', () => {
     it('should detect bad requested size (negative)', (done) => {
         getNewSocket(function onSocket(socket) {
             try {
-                posixread.read(socket, -2, () => {});
+                posixRead.read(socket, -2, () => {});
                 done(new Error('error not thrown'));
             } catch (err) {
                 if (err instanceof TypeError
@@ -119,7 +119,7 @@ describe('posixread.read()', () => {
     it('should detect bad callback', (done) => {
         getNewSocket(function onSocket(socket) {
             try {
-                posixread.read(socket, 10, 'callback');
+                posixRead.read(socket, 10, 'callback');
                 done(new Error('error not thrown'));
             } catch (err) {
                 if (err instanceof TypeError
@@ -134,7 +134,7 @@ describe('posixread.read()', () => {
     it('should read 10 bytes', (done) => {
         getNewSocket(function onSocket(socket, otherEnd) {
             otherEnd.write('ABCDEFGHIJKLMNOPQRSTUVWXYZ', () => {
-                posixread.read(socket, 10, (err, buffer) => {
+                posixRead.read(socket, 10, (err, buffer) => {
                     if (err)
                         return done(err);
 
@@ -149,7 +149,7 @@ describe('posixread.read()', () => {
         getNewSocket(function onSocket(socket, otherEnd) {
             const bigBuf = crypto.randomBytes(99999);
             otherEnd.write(bigBuf, () => {
-                posixread.read(socket, 90000, (err, buffer) => {
+                posixRead.read(socket, 90000, (err, buffer) => {
                     if (err)
                         return done(err);
 
@@ -163,7 +163,7 @@ describe('posixread.read()', () => {
     it('should detect end of stream before having read all', (done) => {
         getNewSocket(function onSocket(socket, otherEnd) {
             otherEnd.end('123456789', () => {
-                posixread.read(socket, 10, (err) => {
+                posixRead.read(socket, 10, (err) => {
                     if (!err)
                         return done(new Error('error not thrown'));
                     if (err.endOfFile !== true
@@ -179,7 +179,7 @@ describe('posixread.read()', () => {
 
     it('should wait for data to be available', (done) => {
         getNewSocket(function onSocket(socket, otherEnd) {
-            posixread.read(socket, 10, (err, buffer) => {
+            posixRead.read(socket, 10, (err, buffer) => {
                 if (err)
                     return done(err);
 
@@ -194,7 +194,7 @@ describe('posixread.read()', () => {
 
     it('should accept data sent by chunks', (done) => {
         getNewSocket(function onSocket(socket, otherEnd) {
-            posixread.read(socket, 25, (err, buffer) => {
+            posixRead.read(socket, 25, (err, buffer) => {
                 if (err)
                     return done(err);
 
