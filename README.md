@@ -64,7 +64,7 @@ properties:
 * `error.endOfFile === true` if the end-of-file was reached before having read
   all the bytes requested
 * `error.systemError === true` in case of a system call error (in such a case,
-  `error.message` should contain more useful information.
+  `error.message` should contain more useful information).
 
 ## License
 
