@@ -61,7 +61,14 @@ describe('posixRead()', () => {
             { pauseOnConnect: true },
             function onConnection(socket) {
                 server.close();
-                callback(socket, otherEnd);
+
+                // Make sure otherEnd is also ready
+                if (otherEnd.readable)
+                    callback(socket, otherEnd);
+                else
+                    otherEnd.on('connect', () => {
+                        callback(socket, otherEnd);
+                    });
                 // otherEnd.end();
                 // otherEnd.destroy();
             });
@@ -209,6 +216,41 @@ describe('posixRead()', () => {
             setTimeout(() => {
                 otherEnd.write('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
             }, 20);
+        });
+    });
+
+    it('should be able to write while reading', (done) => {
+        /*
+         *  otherEnd              socket
+         *    |                     |
+         *    |      Hello          |
+         *    | ------------------> |
+         *    |                     |
+         *    |      Bonjour        |
+         *    | <------------------ |
+         *    |                     |
+         */
+        getNewSocket(function onSocket(socket, otherEnd) {
+            otherEnd.pause();
+
+            posixRead(socket, 5, (err, buffer) => {
+                if (err)
+                    return done(err);
+
+                assert.deepStrictEqual(buffer, new Buffer('Hello'));
+
+                socket.write('Bonjour');
+            });
+
+            posixRead(otherEnd, 7, (err, buffer) => {
+                if (err)
+                    return done(err);
+
+                assert.deepStrictEqual(buffer, new Buffer('Bonjour'));
+                done();
+            });
+
+            otherEnd.write('Hello');
         });
     });
 });
