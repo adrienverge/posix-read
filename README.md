@@ -43,7 +43,7 @@ const posixRead = require('posix-read');
 const server = net.createServer({ pauseOnConnect: true }, function (socket) {
     // Just got an incoming connection. Let's read 10 bytes from it (but DO NOT
     // consume more than 10 bytes from the socket).
-    posixRead.read(socket, 10, function (err, buffer) {
+    posixRead(socket, 10, function (err, buffer) {
         if (err && err.endOfFile)
             return process.stderr.write('peer sent less than 10 bytes\n');
         if (err)
