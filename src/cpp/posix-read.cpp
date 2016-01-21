@@ -246,7 +246,7 @@ class PosixReadWorker : public Nan::AsyncWorker {
     }
 };
 
-void Read(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+NAN_METHOD(Read) {
     if (info.Length() != 3) {
         Nan::ThrowTypeError("wrong number of arguments");
         return;
@@ -303,10 +303,3 @@ void Read(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     Nan::AsyncQueueWorker(new PosixReadWorker(callback, fd, size));
     return;
 }
-
-void Init(v8::Local<v8::Object> exports) {
-    exports->Set(Nan::New("read").ToLocalChecked(),
-                 Nan::New<v8::FunctionTemplate>(Read)->GetFunction());
-}
-
-NODE_MODULE(posixread, Init)
